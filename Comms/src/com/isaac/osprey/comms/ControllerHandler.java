@@ -20,37 +20,35 @@ public class ControllerHandler implements ComponentListener {
 	
 	public ControllerHandler(Controller a,Controller b){
 		// TODO Auto-generated method stub
-
-	try {
-		Controllers.create();
-	} catch (LWJGLException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-	Controllers.poll();
-	
-	for(int i=0;i<Controllers.getControllerCount();i++){
-		setController(Controllers.getController(i));
-		System.out.println(getController().getName());
-		//System.out.println(controller.getName());
-		if(getController().getName().contains("controller") && getController().getAxisCount()>2) {
-			indexB=(indexA!=-1)?i:-1;
-			indexA=(indexA==-1)?i:indexA;
+		try {
+			Controllers.create();
+		} catch (LWJGLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-	}
+		Controllers.poll();
 		
-	/*for(int i=0;i<getController().getAxisCount();i++){
-		//System.out.println(i+": "+getController().getAxisName(i));
-		//controller.setDeadZone(i,0);
+		for(int i=0;i<Controllers.getControllerCount();i++){
+			setController(Controllers.getController(i));
+			System.out.println(getController().getName());
+			//System.out.println(controller.getName());
+			if(getController().getName().contains("controller") && getController().getAxisCount()>2) {
+				indexB=(indexA!=-1)?i:-1;
+				indexA=(indexA==-1)?i:indexA;
+			}
+		}
+		/*for(int i=0;i<getController().getAxisCount();i++){
+			//System.out.println(i+": "+getController().getAxisName(i));
+			//controller.setDeadZone(i,0);
+		}
+		//controller.setRumblerStrength(1, (float) 1.0);
+		for(int i=0;i<getController().getButtonCount();i++){
+		//	System.out.println(i + ": " +controller.getButtonName(i));
+		}*/
+		
 	}
-	//controller.setRumblerStrength(1, (float) 1.0);
-	for(int i=0;i<getController().getButtonCount();i++){
-	//	System.out.println(i + ": " +controller.getButtonName(i));
-	}*/
 	
-	}
 	public  void update(Controller current){
-	
 		current.poll();
 	//	start=controller.isButtonPressed(1);{
 		//	System.out.println(start);
@@ -88,6 +86,7 @@ public class ControllerHandler implements ComponentListener {
 	private Controller getController() {
 		return this.controller;
 	}
+	
 	public byte[] get(int temp) {
 		String csv="$G;";
 		for(int i=0;i<controller(temp).getAxisCount();i++){
@@ -101,11 +100,10 @@ public class ControllerHandler implements ComponentListener {
 		int index=(temp==connected)?indexB:indexA;
 		return Controllers.getController(index);
 	}
+	
 	public int getControllers() {
 		return (connected==0)?1:connected;
 	}
-	
-	
-		}
+}
 
 

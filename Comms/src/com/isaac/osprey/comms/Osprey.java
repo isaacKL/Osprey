@@ -22,18 +22,14 @@ public class Osprey {
 		int tries=0;
 		udp.open();			
 		System.out.println((udp.connected())?"Connected":"Error");
-		
 		do {
 			udp.recieve();
 		}while(!udp.hasSubscribers());
-		System.out.println("Got subscribers");
+		System.out.println("Obtained subscribers");
 		byte[] data="Ready back".getBytes();
 		while (true) {
-		udp.send(data, 0);
-		}
-		
-		
-		
+			udp.send(data, 0);
+		}		
 	}
 	
 	

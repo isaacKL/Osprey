@@ -26,11 +26,10 @@ public class UDP {
 	public UDP() {
 		
 	}
+	
 	public void open() {
 		try {
-		
-			socket=new DatagramSocket(port);
-			
+			socket=new DatagramSocket(port);		
 		}catch(SocketException e) {
 			if(e.getMessage()=="Address already in use: Cannot bind") {
 				System.out.println('.');
@@ -38,6 +37,7 @@ public class UDP {
 			}
 		}
 	}
+	
 	public boolean hasSubscribers() {
 		return subscribers.length>0;
 	}
@@ -67,8 +67,7 @@ public class UDP {
 				port=packet.getPort();
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
-			
+			e.printStackTrace();		
 		}
 	}
 	
@@ -79,14 +78,11 @@ public class UDP {
 	public void setIp(String ip) {
 		//subscribers[(subscribers.length==0)?0:subscribers.length-1]=new InetSocketAddress(ip,port);
 		//subscribers[0]=new InetSocketAddress(ip,port);
-		
 	}
 	
 	private void setPort(int port) {
 		this.port=port;
-	}
-	
-	
+	}	
 	public int send(byte[] data,int pair) {
 		InetAddress temp=subscribers[pair];
 		try {	
