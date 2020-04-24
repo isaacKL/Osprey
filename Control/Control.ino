@@ -2,8 +2,8 @@
 #include <WiFiUDP.h>
 
 // wifi connection variables
-const char* ssid = "Omega";
-const char* password = "cb#75?=1";
+const char* ssid = "*****";
+const char* password = "*******";
 boolean wifiConnected = false;
 IPAddress server=IPAddress(192,168,1,16);
 // UDP variables
