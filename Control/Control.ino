@@ -1,116 +1,146 @@
+ //Osprey Control Unit//
+///////////////////////
+
+#include <MPU3060 .h>
+#include <Serial.h>
 #include <ESP8266WiFi.h>
-#include <WiFiUDP.h>
+#include <WIFIUDP.h>
+#include <Wire.h>
+#include <Servo.h>
 
-// wifi connection variables
-const char* ssid = "*****";
-const char* password = "*******";
-boolean wifiConnected = false;
-IPAddress server=IPAddress(192,168,1,16);
-// UDP variables
-int localPort = 8080;
-WiFiUDP UDP;
-String ip="192.168.1.16";
-boolean udpConnected = false;
-char packetBuffer[1024]; //buffer to hold incoming packet,
-char ReplyBuffer[] = "Ready"; // a string to send back
 
-void setup() {
-  // Initialise Serial connection
-  Serial.begin(115200);  
-  pinMode(LED_BUILTIN,OUTPUT);
-  // Initialise wifi connection
-  wifiConnected = connectWifi();
-  //only proceed if wifi connection successful
-  if(wifiConnected){
-    udpConnected = connectUDP();
-  }
+#define LEFT_MOTOR 3
+#define RIGHT_MOTOR 2
+#define RIGHT_WING 1
+#define LEFT_WING 4
+
+float gyro_raw[3] = {0,0,0};
+float gyro_angle[3] = {0,0,0};
+
+boolean debug=false;
+boolean connected=false;
+
+char data_packet[256];
+
+int motors={0,0};
+int wings={0,0};
+int throttle=0;
+
+Servo r_wing,l_wing;
+
+
+void setup(){
+
+    Serial.begin(115200);
+    debug=(Serial.available())?true:false;
+    
+    //Onboard indicator LED
+    pinMode(LED_BUILTIN,HIGH);
+    //WIFI initiation
+    connect();
+    //bootup pin initialization
+    pinMode(LEFT_MOTOR,OUTPUT);
+    pinMode(RIGHT_MOTOR,OUTPUT);
+    r_wing.attach(RIGHT_WING);
+    l_wing.attach(LEFT_WING);
+    
 }
-
-
-void loop() {
-  // check if the WiFi and UDP connections were successful
-  if(wifiConnected&&udpConnected){
-      // if there’s data available, read a packet
-      int packetSize = UDP.parsePacket();
-      Serial.println(packetSize);
-      if(packetSize){
-        Serial.println("New Packet: ");
-        // read the packet into packetBufffer
-        UDP.read(packetBuffer,UDP_TX_PACKET_MAX_SIZE);
-        Serial.println("Contents:");
-        int value = packetBuffer[0]*256 + packetBuffer[1];
-        Serial.print(value);
-        //send a reply, to the IP address and port that sent us the packet we received
-        UDP.beginPacket(server, 8080);
-        UDP.write(ReplyBuffer);
-        UDP.endPacket();
-     }
-     delay(10);
-  }
-}
-
-  
-  // connect to UDP – returns true if successful or false if not
-boolean connectUDP(){
-  boolean state = false;
-  
-  Serial.println("");
-  Serial.println("Connecting to UDP");
-  UDP.beginPacket(server,8080);
-  UDP.write(ReplyBuffer);
-  UDP.endPacket();
-  if(true){
-    Serial.println("Connection successful");
-    digitalWrite(LED_BUILTIN,HIGH);
-    state = true;
-  }
-  else{
-    Serial.println("Connection failed");
-  }
-  
-  return state;
-}
-
-// connect to wifi – returns true if successful or false if not
-boolean connectWifi(){
-  boolean state = true;
-  int i = 0;
-  WiFi.begin(ssid, password);
-  Serial.println("");
-  Serial.println("Connecting to WiFi");
-  digitalWrite(LED_BUILTIN,HIGH);
-  delay(1500);
-  // Wait for connection
-  Serial.print("Connecting");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(200);
-    Serial.print(".");
-    if (i > 10){
-      state = false;
-      digitalWrite(LED_BUILTIN,LOW);
-      break;
+ 
+void loop(){
+    int values=comms.parsePacket();
+    
+    if(values){
+        int[] data=getData();
+        motors=getMotorValues(data[0],data[3]);
+        wings=getWingValues(data[2],data[1]);
     }
-    i++;
-  }
-  if (state){
-    Serial.println("");
-    Serial.print("Connected to ");
+    r_wing.write(wings[0]);
+    l_wing.write(wings[1]);
+    analogWrite(RIGHT_MOTOR,motors[0]);
+    analogWrite(LEFT_MOTOR,motors[1]);
+
+}
+
+int[] getWingValues(int yaw,int pitch){
+    //yaw is rotate pitch is forward
+
+}
+
+int[] getMotorValues(int roll, int thurst){
+    //roll is right/left 
+    int throttle+=thrust;
+    int throttle=clamp(throttle,0,255);
+    
+    roll=map(roll,0,1000,0,255);
+    int r=(roll>0)?roll:throttle;
+    int l=(roll<0)?roll:throttle;
+    
+}
+
+void(* resetFunc) (void) = 0;
+
+void blink(int duration,int period, bool steady){
+    bool io=true;
+    int loop_count=1000*duration*period
+    for(int i=0;i<loop_count;i++){
+        digitalWrite(LED_BUILTIN,io||steady);
+        delay(period); v 
+        io=!io;
+    }
+}
+
+//Connect to wifi and start udp connection
+void connect(){
+    int attempts=0;
+    Wifi.begin(ssid,pass);
+    //
+    while(WiFi.status() != WL_CONNECTED){
+        if(attempts>15){
+            blink(,150,false);
+            resetFunc();
+        }
+        attempts++;
+    }
+    attempts=0;
+    //Debug output
+    if(debug){
+    Serial.print("Connected to: ");
     Serial.println(ssid);
-    Serial.print("IP address: ");
-    digitalWrite(LED_BUILTIN,HIGH);
-    delay(5000);
+    Serial.print(" IPAddress: ");
     Serial.println(WiFi.localIP());
-  }
-  else {
-    Serial.println("");
-    bool fail=true;
-    for(int i=0;i<50;i++){
-      digitalWrite(LED_BUILTIN,fail);
-      fail=!fail;
-      delay(300);
     }
-    Serial.println("Connection failed.");
-    digitalWrite(LED_BUILTIN,LOW);
-  }
-  return state;
+    //start udp communication.
+    do{
+    char bootup[]='Osprey bootup Initiated';
+    comms.beginPacket(server,8080);
+    comms.write(bootup);
+    comms.endPacket();
+    delay(100);
+    connected=comms.parsePacket()>0;
+    }while(!connected);
+    //read first packet
+    int size = comms.read(data_packet, 256);
+    if (size > 0) data_packet[len-1] = 0;
+
+    if(debug){
+        Serial.print("Server response: ");
+        Serial.println(data_packet);
+    }
+    
+
+}
+
+int[] getData(){
+    int size = comms.read(data_packet, 256);
+    if (size > 0) data_packet[len-1] = 0;
+    int data[4];
+    for(int i=0;i<4;i++){
+        String value='';
+        value+=data_packet[i*4];
+        value+=data_packet[1+i*4];
+        value+=data_packet[2+i*4];
+        value+=data_packet[3+i*4];
+        data[i]=value.toInt();
+    }
+    return data;
 }
