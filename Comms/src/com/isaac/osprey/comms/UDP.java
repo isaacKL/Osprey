@@ -24,7 +24,7 @@ public class UDP {
 	}
 	
 	public UDP() {
-		
+		port=8080;
 	}
 	
 	public void open() {
@@ -56,15 +56,17 @@ public class UDP {
 	
 	public void recieve() {
 		byte[] data=new byte[1024];
-		
 		try {	
 			DatagramPacket packet= new DatagramPacket(data, data.length);
 			socket.receive(packet);
-			String d= new String(packet.getData());
-			System.out.println(d);
-			if(d=="Ready") {
+			String msg= new String(packet.getData());
+			System.out.println(msg);
+			if(msg=="Osprey bootup Initiated") {
 				subscribers[0]=packet.getAddress();
 				port=packet.getPort();
+				send("Bootup Notice Recieved".getBytes(),0);
+			}else if(msg.length()>0){
+				//log or something maybe battery.
 			}
 		} catch (IOException e) {
 			e.printStackTrace();		
@@ -83,6 +85,7 @@ public class UDP {
 	private void setPort(int port) {
 		this.port=port;
 	}	
+
 	public int send(byte[] data,int pair) {
 		InetAddress temp=subscribers[pair];
 		try {	

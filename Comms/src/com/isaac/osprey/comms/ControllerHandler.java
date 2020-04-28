@@ -18,7 +18,7 @@ public class ControllerHandler implements ComponentListener {
 			indexB=-1;
 	
 	
-	public ControllerHandler(Controller a,Controller b){
+	public ControllerHandler(){
 		// TODO Auto-generated method stub
 		try {
 			Controllers.create();
@@ -36,7 +36,15 @@ public class ControllerHandler implements ComponentListener {
 				indexB=(indexA!=-1)?i:-1;
 				indexA=(indexA==-1)?i:indexA;
 			}
+			
 		}
+		
+		/*if(indexA!=-1) {
+			a=Controllers.getController(indexA);
+		}else if(indexB!=-1) {
+			b=Controllers.getController(indexB);
+		}*/
+		
 		/*for(int i=0;i<getController().getAxisCount();i++){
 			//System.out.println(i+": "+getController().getAxisName(i));
 			//controller.setDeadZone(i,0);
@@ -88,10 +96,11 @@ public class ControllerHandler implements ComponentListener {
 	}
 	
 	public byte[] get(int temp) {
-		String csv="$G;";
+		String csv="";
 		for(int i=0;i<controller(temp).getAxisCount();i++){
-			float value=controller(temp).getAxisValue(i);
-			csv+=Float.toString(value);
+			int value=(int)(controller(temp).getAxisValue(i)*1000);
+			System.out.println(controller(temp).getAxisName(i)+": "+Float.toString(value/1000));
+			csv+=value;
 		}
 		return csv.getBytes();
 	}

@@ -16,8 +16,8 @@ public class Osprey {
 	//XxxX
 	
 	public Osprey() {
-		udp = new UDP(8080);
-		c_handler= new ControllerHandler(controller1,controller2);
+		udp = new UDP();
+		c_handler= new ControllerHandler();
 		System.out.println("Connecting....");
 		int tries=0;
 		udp.open();			
@@ -26,10 +26,8 @@ public class Osprey {
 			udp.recieve();
 		}while(!udp.hasSubscribers());
 		System.out.println("Obtained subscribers");
-		byte[] data="Ready back".getBytes();
-		while (true) {
-			udp.send(data, 0);
-		}		
+		
+		
 	}
 	
 	
