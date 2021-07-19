@@ -19,24 +19,23 @@ public class Osprey {
 		udp = new UDP();
 		c_handler= new ControllerHandler();
 		System.out.println("Connecting....");
-		int tries=0;
 		udp.open();			
 		System.out.println((udp.connected())?"Connected":"Error");
 		do {
 			udp.recieve();
 		}while(!udp.hasSubscribers());
+		run=true;
 		System.out.println("Obtained subscribers");
-		
-		
+		main();
 	}
 	
 	
 	public void main() {
 		while(run) {
-			for(int i=0;i<c_handler.getControllers();i++) {
-				byte[] data=c_handler.get(i);
-				udp.send(data, i);
-			}
+			//for(int i=0;i<c_handler.getControllers();i++) {
+				byte[] data=c_handler.get();
+				udp.send(data, 0);
+			//}
 		}
 	}
 	

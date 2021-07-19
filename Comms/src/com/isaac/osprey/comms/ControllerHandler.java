@@ -3,9 +3,9 @@ package com.isaac.osprey.comms;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
-import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Controller;
 import org.lwjgl.input.Controllers;
+import org.lwjgl.LWJGLException;
 
 public class ControllerHandler implements ComponentListener {
 
@@ -14,8 +14,7 @@ public class ControllerHandler implements ComponentListener {
 	
 	public static boolean start=false;
 	private int connected=0,
-			indexA=-1,
-			indexB=-1;
+			indexA=-1;
 	
 	
 	public ControllerHandler(){
@@ -32,12 +31,12 @@ public class ControllerHandler implements ComponentListener {
 			setController(Controllers.getController(i));
 			System.out.println(getController().getName());
 			//System.out.println(controller.getName());
-			if(getController().getName().contains("controller") && getController().getAxisCount()>2) {
-				indexB=(indexA!=-1)?i:-1;
-				indexA=(indexA==-1)?i:indexA;
+			if(controller.getName().contains("xbox")) {
+				indexA=i;
+				break;
 			}
-			
 		}
+		System.out.println(getController().getAxisCount());
 		
 		/*if(indexA!=-1) {
 			a=Controllers.getController(indexA);
@@ -56,7 +55,7 @@ public class ControllerHandler implements ComponentListener {
 		
 	}
 	
-	public  void update(Controller current){
+	private  void update(Controller current){
 		current.poll();
 	//	start=controller.isButtonPressed(1);{
 		//	System.out.println(start);
@@ -95,20 +94,21 @@ public class ControllerHandler implements ComponentListener {
 		return this.controller;
 	}
 	
-	public byte[] get(int temp) {
+	public byte[] get() {
+		
 		String csv="";
-		for(int i=0;i<controller(temp).getAxisCount();i++){
-			int value=(int)(controller(temp).getAxisValue(i)*1000);
-			System.out.println(controller(temp).getAxisName(i)+": "+Float.toString(value/1000));
-			csv+=value;
-		}
+		update(controller);
+		
+		int x=(int)(controller.getXAxisValue()*1000);
+		int y=(int)(controller.getYAxisValue()*1000);
+		int z=(int)(controller.getZAxisValue()*1000);
+		int t=(int)(controller.getRXAxisValue()*1000);		
+			csv=Integer.toString(x)+Integer.toString(y)+Integer.toString(z)+Integer.toString(t);
+		//System.out.println(csv);
 		return csv.getBytes();
 	}
 	
-	private Controller controller(int temp) {
-		int index=(temp==connected)?indexB:indexA;
-		return Controllers.getController(index);
-	}
+	
 	
 	public int getControllers() {
 		return (connected==0)?1:connected;

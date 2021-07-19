@@ -24,7 +24,7 @@ public class UDP {
 	}
 	
 	public UDP() {
-		port=8080;
+		port=8192;
 	}
 	
 	public void open() {
@@ -34,6 +34,7 @@ public class UDP {
 			if(e.getMessage()=="Address already in use: Cannot bind") {
 				System.out.println('.');
 				socket.close();
+				System.exit(1);
 			}
 		}
 	}
@@ -61,7 +62,7 @@ public class UDP {
 			socket.receive(packet);
 			String msg= new String(packet.getData());
 			System.out.println(msg);
-			if(msg=="Osprey bootup Initiated") {
+			if(msg.length()>0) {
 				subscribers[0]=packet.getAddress();
 				port=packet.getPort();
 				send("Bootup Notice Recieved".getBytes(),0);
